@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mlc-llm-deployment
+spec: 
+  replicas : 2
+  selector:
+    matchLabels:
+      app: mlc-llm-service
+  template:
+    metadata:
+      labels:
+        app: mlc-llm-service
+    spec:
+      containers:
+      - name: mlc-llm-serve
+        image: mlc-llm-serve:v1
+        ports: 
+        - containerPort: 8000
+        resources:
+          requests:
+            cpu: "4"
+            memory: "16Gi"
+            nvidia.com/gpu: 1
+          limits:
+            cpu: "8"
+            memory: "32Gi"
+            nvidia.com/gpu: 1

@@ -1,0 +1,24 @@
+ARG CUDA_VERSION=12.3.1
+FROM nvidia/cuda:${CUDA_VERSION}-devel-ubuntu22.04
+
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    git curl wget ca-certificates && \
+    curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && \
+    apt-get install git-lfs && \
+    git lfs install && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN wget -O Miniforge3.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh" && \
+    bash Miniforge3.sh -b -p /opt/conda && \
+    /opt/conda/bin/conda create -n serve python=3.11
+ENV PATH=/opt/conda/envs/serve/bin:$PATH
+
+RUN python -m pip install --pre -U -f https://mlc.ai/wheels mlc-llm-nightly-cu123 mlc-ai-nightly-cu123
+
+ENTRYPOINT ["mlc_llm", "serve"]
+CMD ["HF://mlc-ai/Llama-3.1-8B-Instruct-q4f16_1-MLC", "--host", "0.0.0.0", "--port", "8000"]
