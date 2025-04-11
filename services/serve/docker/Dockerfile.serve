@@ -6,9 +6,6 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=UTC
 
 COPY serve.py .
-COPY serve.sh .
-
-RUN chmod +x serve.sh
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -35,4 +32,4 @@ RUN python -m pip install --pre -U -f https://mlc.ai/wheels mlc-llm-nightly-cu12
 
 RUN git clone https://huggingface.co/mlc-ai/Llama-3.1-8B-Instruct-q4f16_1-MLC
 
-ENTRYPOINT ["/serve.sh"]
+ENTRYPOINT ["python", "serve.py"]
