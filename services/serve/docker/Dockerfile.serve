@@ -5,12 +5,21 @@ FROM nvidia/cuda:${CUDA_VERSION}-devel-ubuntu22.04
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=UTC
 
+COPY serve.py .
+COPY serve.sh .
+
+RUN chmod +x serve.sh
+
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     git curl wget ca-certificates && \
     curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && \
     apt-get install git-lfs && \
     git lfs install && \
+    wget https://developer.download.nvidia.com/compute/nvshmem/3.2.5/local_installers/nvshmem-local-repo-ubuntu2204-3.2.5_3.2.5-1_amd64.deb && \
+    dpkg -i nvshmem-local-repo-ubuntu2204-3.2.5_3.2.5-1_amd64.deb && \
+    cp /var/nvshmem-local-repo-ubuntu2204-3.2.5/nvshmem-*-keyring.gpg /usr/share/keyrings/ && \
+    apt-get -y install nvshmem-cuda-12 && \
     rm -rf /var/lib/apt/lists/*
 
 RUN wget -O Miniforge3.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh" && \
@@ -18,7 +27,12 @@ RUN wget -O Miniforge3.sh "https://github.com/conda-forge/miniforge/releases/lat
     /opt/conda/bin/conda create -n serve python=3.11
 ENV PATH=/opt/conda/envs/serve/bin:$PATH
 
+ENV LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/nvshmem/12:$LD_LIBRARY_PATH
+ENV PATH=/usr/local/cuda/bin:$PATH
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+
 RUN python -m pip install --pre -U -f https://mlc.ai/wheels mlc-llm-nightly-cu123 mlc-ai-nightly-cu123
 
-ENTRYPOINT ["mlc_llm", "serve"]
-CMD ["HF://mlc-ai/Llama-3.1-8B-Instruct-q4f16_1-MLC", "--host", "0.0.0.0", "--port", "8000"]
+RUN git clone https://huggingface.co/mlc-ai/Llama-3.1-8B-Instruct-q4f16_1-MLC
+
+ENTRYPOINT ["/serve.sh"]

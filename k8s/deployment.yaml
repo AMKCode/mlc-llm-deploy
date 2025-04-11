@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: mlc-llm-deployment
 spec: 
@@ -17,6 +17,11 @@ spec:
         image: mlc-llm-serve:v1
         ports: 
         - containerPort: 8000
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
         resources:
           requests:
             cpu: "4"
