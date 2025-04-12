@@ -14,16 +14,12 @@ spec:
     spec:
       containers:
       - name: mlc-llm-serve
-        image: mlc-llm-serve:v1
+        image: mlc-llm-serve:v2
         ports: 
         - containerPort: 8000
         env:
-        - name: POD_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.name
         - name: NUM_REPLICAS
-          value: 2
+          value: "2"
         resources:
           requests:
             cpu: "4"
