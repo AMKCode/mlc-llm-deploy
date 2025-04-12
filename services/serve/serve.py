@@ -10,11 +10,21 @@ subprocess.run(['python', '-m', 'mlc_llm', 'compile',
                 '--overrides', 'disaggregation=1',
                 '-o', 'Llama-3.1-8B-Instruct-q4f16_1-MLC/lib_disagg.so'])
 
+# NOTE HOSTNAME only works in a pod
+pod_name = os.getenv("HOSTNAME", default=None)
+if pod_name is None:
+    cuda_id = 0
+else:
+    cuda_id = pod_name.split("-")[-1]
+    cuda_id = int(cuda_id)
+print(f"cuda_id: {cuda_id}")
+
 num_replicas = os.getenv("NUM_REPLICAS", default=None)
 if num_replicas is None:
     num_replicas = 1
 else:
     num_replicas = int(num_replicas)
+print(f"num_replicas: {num_replicas}")
 
 f_init_nvshmem_uid = tvm.get_global_func("runtime.disco.nvshmem.init_nvshmem_uid")
 uid = list(f_init_nvshmem_uid())
@@ -22,7 +32,7 @@ uid = list(f_init_nvshmem_uid())
 nvshmem_config = {
                 "uid": uid,
                 "npes": num_replicas,  # total number of workers in the nvshmem world
-                "pe_start": 0,  # start of PE for this endpoint's workers
+                "pe_start": cuda_id,  # start of PE for this endpoint's workers
                 }
 
 os.environ["MLC_NVSHMEM_INIT_CONFIG_JSON_STR"] = json.dumps(nvshmem_config)

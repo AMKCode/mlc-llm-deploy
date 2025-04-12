@@ -3,7 +3,7 @@ kind: StatefulSet
 metadata:
   name: mlc-llm-deployment
 spec: 
-  replicas : 2
+  replicas : 8
   selector:
     matchLabels:
       app: mlc-llm-service
@@ -19,13 +19,13 @@ spec:
         - containerPort: 8000
         env:
         - name: NUM_REPLICAS
-          value: "2"
+          value: "8"
         resources:
           requests:
             cpu: "4"
             memory: "16Gi"
             nvidia.com/gpu: 1
           limits:
-            cpu: "8"
-            memory: "32Gi"
+            cpu: "4"
+            memory: "16Gi"
             nvidia.com/gpu: 1
